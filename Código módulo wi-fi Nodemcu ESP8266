@@ -1,0 +1,249 @@
+
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+//The nodemcu module will be connected with pin 0 and pin 1, on default serial port.
+ 
+//Nodemcu1 programming "car parking slots monitoring"
+#define BLYNK_PRINT Serial
+ 
+ 
+#include <ESP8266WiFi.h>
+#include <BlynkSimpleEsp8266.h>
+#include <SoftwareSerial.h>
+#include <SimpleTimer.h>
+ 
+char auth[] = "5d35963fe5ac40fa9690e382e0a3d0a2";
+ 
+// Your WiFi credentials.
+// Set password to "" for open networks.
+char ssid[] = "ZONG MBB-E8231-6E63";
+char pass[] = "08659650";
+ 
+WidgetTerminal terminal(V3); 
+SimpleTimer timer;
+ 
+String myString; // complete message from arduino, which consistors of snesors data
+char rdata; // received charactors
+ 
+String l,m,n;
+// This function sends Arduino's up time every second to Virtual Pin (1).
+// In the app, Widget's reading frequency should be set to PUSH. This means
+// that you define how often to send data to Blynk App.
+void myTimerEvent()
+{
+  // You can send any value at any time.
+  // Please don't send more that 10 values per second.
+  Blynk.virtualWrite(V1, millis() / 1000);
+  
+}
+ 
+ 
+ 
+void setup()
+{
+  // Debug console
+  Serial.begin(9600);
+ 
+  Blynk.begin(auth, ssid, pass);
+ 
+    timer.setInterval(1000L,sensorvalue); 
+ 
+  
+ 
+}
+ 
+void loop()
+{
+   if (Serial.available() == 0 ) 
+   {
+  Blynk.run();
+  timer.run(); // Initiates BlynkTimer
+   }
+   
+  if (Serial.available() > 0 ) 
+  {
+    rdata = Serial.read(); 
+    myString = myString+ rdata; 
+    Serial.print(rdata);
+    if( rdata == '\n')
+    {
+    // Serial.println(myString); 
+  // Serial.println("fahad");
+// new code
+ l = getValue(myString, ',', 0);
+ m = getValue(myString, ',', 1);
+ n = getValue(myString, ',', 2);
+ 
+ 
+  myString = "";
+  delay(500); 
+// end new code
+    }
+  }
+ 
+}
+ 
+void sensorvalue()
+{
+ 
+  // You can send any value at any time.
+  // Please don't send more that 10 values per second.
+ 
+  terminal.println("Red Phase:"); 
+ terminal.println(l);
+  terminal.println("*********"); 
+delay(500); 
+   terminal.println("Yellow Phase:"); 
+  terminal.println(m);
+    terminal.println("*********");
+delay(500);
+   terminal.println("Blue Phase:"); 
+  terminal.println(n);
+    terminal.println("*********");
+delay(500);   
+ 
+}
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+String getValue(String data, char separator, int index)
+{
+    int found = 0;
+    int strIndex[] = { 0, -1 };
+    int maxIndex = data.length() - 1;
+ 
+    for (int i = 0; i <= maxIndex && found <= index; i++) {
+        if (data.charAt(i) == separator || i == maxIndex) {
+            found++;
+            strIndex[0] = strIndex[1] + 1;
+            strIndex[1] = (i == maxIndex) ? i+1 : i;
+        }
+    }
+    return found > index ? data.substring(strIndex[0], strIndex[1]) : "";
+}
